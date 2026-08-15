@@ -4,6 +4,59 @@ import { useState } from "react";
 
 export default function AttendancePage() {
   const [isStarted, setIsStarted] = useState(false);
+  const [currentRoll, setCurrentRoll] = useState(1);
+
+  const totalStudents = 10;
+
+  // Make the browser speak
+  const speakRollNumber = (roll: number) => {
+    if (!("speechSynthesis" in window)) {
+      alert("Speech synthesis is not supported in this browser.");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const message = new SpeechSynthesisUtterance(
+      `Roll number ${roll}`
+    );
+
+    message.rate = 0.9;
+    message.pitch = 1;
+
+    window.speechSynthesis.speak(message);
+  };
+
+  // Start attendance
+  const startAttendance = () => {
+    setIsStarted(true);
+    setCurrentRoll(1);
+
+    setTimeout(() => {
+      speakRollNumber(1);
+    }, 500);
+  };
+
+  // Call next student
+  const nextStudent = () => {
+    if (currentRoll < totalStudents) {
+      const nextRoll = currentRoll + 1;
+
+      setCurrentRoll(nextRoll);
+
+      setTimeout(() => {
+        speakRollNumber(nextRoll);
+      }, 300);
+    }
+  };
+
+  // Stop attendance
+  const stopAttendance = () => {
+    window.speechSynthesis.cancel();
+
+    setIsStarted(false);
+    setCurrentRoll(1);
+  };
 
   return (
     <main className="min-h-screen bg-gray-100 p-8">
@@ -11,7 +64,6 @@ export default function AttendancePage() {
       {/* Header */}
 
       <div className="mb-8">
-
         <h1 className="text-3xl font-bold">
           Voice Attendance
         </h1>
@@ -19,39 +71,32 @@ export default function AttendancePage() {
         <p className="text-gray-500 mt-2">
           Take attendance using AI voice interaction.
         </p>
-
       </div>
 
 
-      {/* Attendance Control */}
+      {/* Attendance Card */}
 
       <div className="bg-white rounded-xl shadow-sm p-8 max-w-4xl">
 
-        <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">
+          Attendance Session
+        </h2>
 
-          <h2 className="text-xl font-semibold">
-            Attendance Session
-          </h2>
-
-          <p className="text-gray-500 mt-2">
-            Select a class and start the AI attendance session.
-          </p>
-
-        </div>
+        <p className="text-gray-500 mb-8">
+          Start the session and the AI will call students by roll number.
+        </p>
 
 
-        {/* Class Selection */}
+        {/* Class and Date */}
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
 
           <div>
-
             <label className="block text-sm font-medium mb-2">
               Select Class
             </label>
 
             <select className="w-full border rounded-lg p-3">
-
               <option>
                 Bioinformatics - Section 48
               </option>
@@ -59,14 +104,11 @@ export default function AttendancePage() {
               <option>
                 Biochemistry - Section 48
               </option>
-
             </select>
-
           </div>
 
 
           <div>
-
             <label className="block text-sm font-medium mb-2">
               Date
             </label>
@@ -75,7 +117,6 @@ export default function AttendancePage() {
               type="date"
               className="w-full border rounded-lg p-3"
             />
-
           </div>
 
         </div>
@@ -83,33 +124,37 @@ export default function AttendancePage() {
 
         {/* Voice Status */}
 
-        <div className="border rounded-xl p-8 text-center mb-8">
+        <div className="border rounded-xl p-10 text-center mb-8">
 
-          <div className="text-5xl mb-4">
+          <div className="text-6xl mb-5">
             🎙️
           </div>
 
-          {isStarted ? (
+          {!isStarted ? (
 
             <>
-              <h3 className="text-xl font-semibold">
-                Attendance in progress
+              <h3 className="text-2xl font-semibold">
+                Ready to take attendance
               </h3>
 
               <p className="text-gray-500 mt-2">
-                AI is ready to call students.
+                Start the session to begin.
               </p>
             </>
 
           ) : (
 
             <>
-              <h3 className="text-xl font-semibold">
-                Ready to take attendance
+              <p className="text-gray-500">
+                AI is calling:
+              </p>
+
+              <h3 className="text-4xl font-bold mt-3">
+                Roll Number {currentRoll}
               </h3>
 
-              <p className="text-gray-500 mt-2">
-                Start the session to begin voice attendance.
+              <p className="text-gray-500 mt-3">
+                Please respond when your roll number is called.
               </p>
             </>
 
@@ -118,66 +163,78 @@ export default function AttendancePage() {
         </div>
 
 
-        {/* Start Button */}
+        {/* Buttons */}
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
 
-          <button
-            onClick={() => setIsStarted(!isStarted)}
-            className="px-8 py-4 bg-black text-white rounded-xl font-semibold"
-          >
+          {!isStarted ? (
 
-            {isStarted
-              ? "Stop Attendance"
-              : "🎙️ Start Voice Attendance"}
+            <button
+              onClick={startAttendance}
+              className="px-8 py-4 bg-black text-white rounded-xl font-semibold"
+            >
+              🎙️ Start Voice Attendance
+            </button>
 
-          </button>
+          ) : (
+
+            <>
+              <button
+                onClick={nextStudent}
+                className="px-8 py-4 bg-black text-white rounded-xl font-semibold"
+              >
+                🔊 Call Next Student
+              </button>
+
+              <button
+                onClick={stopAttendance}
+                className="px-8 py-4 border rounded-xl font-semibold"
+              >
+                Stop Attendance
+              </button>
+            </>
+
+          )}
 
         </div>
 
       </div>
 
 
-      {/* Attendance Summary */}
+      {/* Statistics */}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-4xl">
 
         <div className="bg-white p-6 rounded-xl">
-
           <p className="text-gray-500">
             Total Students
           </p>
 
           <p className="text-3xl font-bold mt-2">
-            58
+            {totalStudents}
           </p>
-
         </div>
 
 
         <div className="bg-white p-6 rounded-xl">
-
           <p className="text-gray-500">
-            Present
+            Current Roll
           </p>
 
           <p className="text-3xl font-bold mt-2">
-            0
+            {currentRoll}
           </p>
-
         </div>
 
 
         <div className="bg-white p-6 rounded-xl">
-
           <p className="text-gray-500">
-            Absent
+            Status
           </p>
 
-          <p className="text-3xl font-bold mt-2">
-            0
+          <p className="text-xl font-bold mt-2">
+            {isStarted ? "Active" : "Not Started"}
           </p>
-
         </div>
 
       </div>
